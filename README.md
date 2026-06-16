@@ -2,7 +2,7 @@
 
 Claude Code Skill — 全自动日报工作流。
 
-> 一条命令：拉取 AI / 游戏 / 足球三领域最新资讯 → 生成 HTML 深度报告 → 发布到 GitHub Pages → 保留历史归档。
+> 一条命令：拉取 AI / 游戏 / 足球 / 芯片 / 股权投资五领域最新资讯 → 生成 HTML 深度报告 → 发布到 GitHub Pages → 保留历史归档。
 
 ## 触发词
 
@@ -18,9 +18,9 @@ Claude Code Skill — 全自动日报工作流。
 ```
 用户说"更新网站"
     ↓
-📡 并行拉取 AI + 游戏 + 足球 数据
+📡 并行拉取 AI + 游戏 + 足球 + 芯片 + 股权投资 数据
     ↓
-📝 生成三份 HTML 报告（各约 30 条，每条 300-500 字深度解读）
+📝 生成五份 HTML 报告（各约 15-30 条，每条 300-500 字深度解读）
     ↓
 📂 复制到 GitHub Pages 仓库 + 更新归档页
     ↓
@@ -32,8 +32,10 @@ Claude Code Skill — 全自动日报工作流。
 | 领域 | 数据来源 |
 |---|---|
 | 🤖 AI | [AI HOT](https://aihot.virxact.com) REST API（精选条目） |
-| 🎮 游戏 | WebSearch 实时搜索（IGN / Game Developer / KeenGamer 等） |
+| 🎮 游戏 | WebSearch 实时搜索（IGN / Game Developer / Polygon 等） |
 | ⚽ 足球 | WebSearch 实时搜索（ESPN / BBC Sport / 懂球帝 / 直播吧 等） |
+| 🔬 芯片 | WebSearch 实时搜索（TrendForce / 德勤 / 大摩 / IT之家 等） |
+| 💰 股权投资 | WebSearch 实时搜索（PitchBook / HSBC / 清科 / 投中 等） |
 
 ## 安装
 
@@ -61,6 +63,8 @@ cp SKILL.md ~/.claude/skills/daily-reports/
 - 🤖 https://gigode.de/reports/2026-06-05/ai.html
 - 🎮 https://gigode.de/reports/2026-06-05/game.html
 - ⚽ https://gigode.de/reports/2026-06-05/football.html
+- 🔬 https://gigode.de/reports/2026-06-05/chip.html
+- 💰 https://gigode.de/reports/2026-06-05/equity.html
 
 每条历史报告永久保留，逐日累积。
 
@@ -76,7 +80,9 @@ cp SKILL.md ~/.claude/skills/daily-reports/
 | [ai-report](https://github.com/gigode/ai-report-skill) | AI 行业 HTML 报告 |
 | [gamehot](https://github.com/gigode/gamehot-skill) | 游戏资讯简报 |
 | [footballhot](https://github.com/gigode/footballhot-skill) | 足球资讯简报 |
-| **daily-reports** | **三领域全套日报 + 网站发布** |
+| [chip-report](https://github.com/gigode/chip-report-skill) | 芯片行业日报 |
+| [equity-report](https://github.com/gigode/equity-report-skill) | 股权投资日报 |
+| **daily-reports** | **五领域全套日报 + 网站发布** |
 
 ## License
 

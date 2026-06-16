@@ -1,20 +1,20 @@
 ---
 name: daily-reports
-description: 更新全套日报网站。当用户说"更新网站"、"更新日报"、"更新报告"、"发布今天的报告"、"刷新日报网站"、"update reports"、"publish reports"时触发。自动拉取 AI/游戏/足球三领域最新资讯，生成 HTML 报告，更新 GitHub Pages 网站，保留历史报告。
+description: 更新全套日报网站。当用户说"更新网站"、"更新日报"、"更新报告"、"发布今天的报告"、"刷新日报网站"、"update reports"、"publish reports"时触发。自动拉取 AI/游戏/足球/芯片/股权投资五领域最新资讯，生成 HTML 报告，更新 GitHub Pages 网站，保留历史报告。
 ---
 
 # Daily Reports Skill
 
-全自动日报工作流：拉取数据 → 生成三份 HTML 报告 → 更新 gigode.github.io → 提交推送。一条命令完成全部操作。
+全自动日报工作流：拉取数据 → 生成五份 HTML 报告（AI/游戏/足球/芯片/股权投资）→ 更新 gigode.github.io → 提交推送。一条命令完成全部操作。
 
 ## 工作流总览
 
 ```
 用户说"更新网站"
     ↓
-Phase 1: 并行拉取 AI + 游戏 + 足球 数据
+Phase 1: 并行拉取 AI + 游戏 + 足球 + 芯片 + 股权投资 数据
     ↓
-Phase 2: 生成三份 HTML 报告 → C:\works\
+Phase 2: 生成五份 HTML 报告 → C:\works\
     ↓
 Phase 3: 复制到 gigode.github.io 仓库 + 更新 hub 页面
     ↓
@@ -255,3 +255,30 @@ git push origin main
 - 不要在搜索无结果时编造内容
 - 不要跳过深度解读——每条必须 300-500 字分析
 - 不要遗漏 URL——每条必须有来源链接
+
+## 芯片 & 股权投资板块（2026-06-10 新增）
+
+### 1d. 芯片数据（WebSearch，4 类中英文并行）
+| 新产品/技术 | "semiconductor new products June 2026 chip NVIDIA TSMC" + "芯片 新产品 新技术" |
+| 企业动态 | "semiconductor company news June 2026" + "芯片企业 中芯国际 华为" |
+| 大咖观点 | "chip semiconductor expert opinion 2026" + "芯片 大咖观点 行业分析" |
+| 政策资本 | "CHIPS Act export control semiconductor policy" + "芯片 出口管制 政策 资本" |
+
+### 1e. 股权投资数据（WebSearch，4 类中英文并行）
+| 投资案例 | "venture capital funding rounds June 2026" + "融资 创投 案例" |
+| 基金设立 | "private equity mega fund launch June 2026" + "基金设立 募资 PE VC" |
+| 政策行情 | "VC industry trends 2026 fundraising exits" + "股权投资 政策 IPO 退出" |
+| 大咖观点 | "VC PE expert opinion investment outlook 2026" + "投资大佬 观点 趋势" |
+
+### 报告命名
+- `chiphot-report-YYYY-MM-DD.html`（芯片，绿色封面）
+- `equityhot-report-YYYY-MM-DD.html`（股权投资，金色封面）
+
+### 复制到仓库（追加）
+```bash
+cp "C:/works/chiphot-report-$DATE.html"   "C:/works/gigode.github.io/reports/$DATE/chip.html"
+cp "C:/works/equityhot-report-$DATE.html" "C:/works/gigode.github.io/reports/$DATE/equity.html"
+```
+
+### Hub 页面更新
+5 个板块 pill：`rp-ai` / `rp-game` / `rp-foot` / `rp-chip` / `rp-equity`
