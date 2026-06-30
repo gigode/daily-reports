@@ -1,45 +1,27 @@
 # daily-reports
 
-Claude Code Skill — 全自动日报工作流。
+Claude Code skill — 全自动日报工作流，一条命令更新全套网站。
 
-> 一条命令：拉取 AI / 游戏 / 足球 / 芯片 / 股权投资五领域最新资讯 → 生成 HTML 深度报告 → 发布到 GitHub Pages → 保留历史归档。
+## 功能
 
-## 触发词
+说"**更新网站**"自动完成：
 
-| 中文 | 英文 |
-|---|---|
-| 更新网站 | update reports |
-| 更新日报 | publish reports |
-| 更新报告 | refresh daily reports |
-| 发布今天的报告 | |
+1. 并行拉取 **6 大领域**最新资讯
+2. 生成 **6 份 HTML 深度报告**（每条约 300-500 字解读，可展开卡片式布局）
+3. 发布到 **GitHub Pages**，历史报告自动归档
 
-## 工作流
+## 覆盖领域
 
-```
-用户说"更新网站"
-    ↓
-📡 并行拉取 AI + 游戏 + 足球 + 芯片 + 股权投资 数据
-    ↓
-📝 生成五份 HTML 报告（各约 15-30 条，每条 300-500 字深度解读）
-    ↓
-📂 复制到 GitHub Pages 仓库 + 更新归档页
-    ↓
-🚀 Git commit & push → 线上生效
-```
-
-## 数据源
-
-| 领域 | 数据来源 |
-|---|---|
-| 🤖 AI | [AI HOT](https://aihot.virxact.com) REST API（精选条目） |
-| 🎮 游戏 | WebSearch 实时搜索（IGN / Game Developer / Polygon 等） |
-| ⚽ 足球 | WebSearch 实时搜索（ESPN / BBC Sport / 懂球帝 / 直播吧 等） |
-| 🔬 芯片 | WebSearch 实时搜索（TrendForce / 德勤 / 大摩 / IT之家 等） |
-| 💰 股权投资 | WebSearch 实时搜索（PitchBook / HSBC / 清科 / 投中 等） |
+| 领域 | 数据源 | 报告条数 |
+|------|--------|---------|
+| 🤖 AI | [aihot.virxact.com](https://aihot.virxact.com) API | ~22 条 |
+| 🎮 游戏 | Steam / LoLPedia / Sky Sports / PC Gamer | ~30 条 |
+| ⚽ 足球 | Sky Sports / SI / ESPN | ~29 条 |
+| 🔬 芯片 | Investing.com / TechCrunch / Tom's Hardware | ~26 条 |
+| 💰 股权投资 | TechCrunch / Investing / Yahoo Finance | ~26 条 |
+| 🌍 全球宏观 | yfinance + FRED API + Investing.com | ~22 条 |
 
 ## 安装
-
-将 `SKILL.md` 复制到你的 Claude Code skills 目录：
 
 ```bash
 mkdir -p ~/.claude/skills/daily-reports
@@ -50,39 +32,36 @@ cp SKILL.md ~/.claude/skills/daily-reports/
 
 ## 前置要求
 
-- Claude Code（支持 Skill + WebSearch + WebFetch）
-- GitHub CLI（`gh`）已登录
-- 目标 GitHub Pages 仓库已 clone 到工作目录
+- **Claude Code**（支持 Skill + WebFetch + Bash）
+- **Python** (yfinance) — 拉取宏观市场数据（ETF/指数/商品/外汇）
+- **FRED API Key** — 从 [fred.stlouisfed.org](https://fred.stlouisfed.org/docs/api/api_key.html) 免费获取，设为环境变量 `FRED_API_KEY`
+- **Node.js** — JSON 解析和文件处理
+- **GitHub CLI**（`gh`）已登录
+- 目标网站仓库 `gigode.github.io` 已 clone 到本地
 
-## 部署的网站
+## 触发词
 
-报告发布到 GitHub Pages，例如：
+"更新网站" / "更新日报" / "更新报告" / "发布今天的报告" / "刷新日报网站" / "update reports" / "publish reports"
 
-- 🏠 https://gigode.de/
-- 📑 https://gigode.de/reports/
-- 🤖 https://gigode.de/reports/2026-06-05/ai.html
-- 🎮 https://gigode.de/reports/2026-06-05/game.html
-- ⚽ https://gigode.de/reports/2026-06-05/football.html
-- 🔬 https://gigode.de/reports/2026-06-05/chip.html
-- 💰 https://gigode.de/reports/2026-06-05/equity.html
+## 报告示例
 
-每条历史报告永久保留，逐日累积。
+访问 [gigode.de/reports](https://gigode.de/reports/) 查看历史报告。
 
-## 费用
+## 每次运行成本
 
-每次运行约消耗 8-12 万 token。按 DeepSeek 当前价格约为 **¥0.7-1.5/次**。
+约 8-15 万 token，按 DeepSeek 当前价格 ≈ ¥1-2/次。
 
-## 技能家族
+## 相关技能
 
 | Skill | 功能 |
-|---|---|
+|-------|------|
 | [aihot](https://github.com/gigode/aihot-skill) | AI 资讯快速简报（Markdown） |
 | [ai-report](https://github.com/gigode/ai-report-skill) | AI 行业 HTML 报告 |
 | [gamehot](https://github.com/gigode/gamehot-skill) | 游戏资讯简报 |
 | [footballhot](https://github.com/gigode/footballhot-skill) | 足球资讯简报 |
 | [chip-report](https://github.com/gigode/chip-report-skill) | 芯片行业日报 |
 | [equity-report](https://github.com/gigode/equity-report-skill) | 股权投资日报 |
-| **daily-reports** | **五领域全套日报 + 网站发布** |
+| **daily-reports** | **6 领域全套日报 + 网站发布** |
 
 ## License
 
