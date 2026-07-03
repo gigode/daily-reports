@@ -617,6 +617,7 @@ git -C /c/works/gigode.github.io push origin main
 8. **每条必须有来源 URL** — 不遗漏
 9. **不删除历史条目** — index.html 只追加不删除
 10. **node 解析 JSON** — python3 不可用时用 node
+11. **去重前两日报道** — 生成报告前，必须对比前两日报告，剔除标题/事件已出现在前两日中的条目，只保留新资讯。AI 领域尤其关键——aihot API 经常连续 3 天返回同一批产品发布/论文。
 
 ## 相关资源
 
