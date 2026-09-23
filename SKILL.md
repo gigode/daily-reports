@@ -16,9 +16,9 @@ Phase 1: 并行拉取 6 领域数据
     ↓
 Phase 1.5: 数据可靠性分级与源数据清单 ← CRITICAL（2026-07-10 重写）
     ↓
-Phase 2: 生成 6 份 HTML 报告 → C:\works\  [源数据锚定 · 3x放大上限 · 足球/游戏摘要模式]
+Phase 2: 生成 6 份 HTML 报告 → C:\works\  [源数据锚定 · 优先深读原文 · 缺失指标不展示]
     ↓
-Phase 2.5: 写作后自审清单 ← CRITICAL（2026-07-10 新增）— 逐卡5项检查
+Phase 2.5: 写作后自审清单 ← CRITICAL（2026-07-10 新增）— 逐卡6项检查
     ↓
 Phase 3: 复制到 gigode.github.io 仓库 + 添加 Back to Reports 导航 + 更新 hub 页面
     ↓
@@ -31,9 +31,9 @@ Phase 4: Git commit & push → 线上生效
 
 ### Python 环境说明
 
-- **路径:** `C:\Users\zm_ji\scoop\apps\python\current\python.exe` (Python 3.14.5)
-- **不要用** `python3` 或 `python`（Windows Store stub，exit 49）
-- **在用 Bash 时使用 herdoc 传 Python:**
+- 下列 `C:\works\`、`/c/works/` 和 Scoop Python 路径是原 Windows 工作站示例。在 Linux/macOS 先定位当前 workspace、网站仓库和可用 Python，不照抄 Windows 路径。当前 Linux workspace 通常为 `/home/gigo/arbeit`，网站仓库为其下的 `gigode.github.io`。
+- **Windows 路径:** `C:\Users\zm_ji\scoop\apps\python\current\python.exe` (Python 3.14.5)；该工作站的 `python3`/`python` 是 Windows Store stub，exit 49。
+- **在该 Windows 工作站用 Bash 时使用 herdoc 传 Python:**
   ```bash
   /c/Users/zm_ji/scoop/apps/python/current/python.exe << 'PYEOF'
   ...code...
@@ -42,17 +42,20 @@ Phase 4: Git commit & push → 线上生效
 
 ### 1a. AI 数据（aihot API）
 
+参考 [AIHOT Agent Skill](https://aihot.news/aihot-skill/SKILL.md) 的资讯口径：当前精选使用 `/api/v1/items?mode=selected&window=24h&limit=50`；`summary` 是事实摘要，非空的 `reason` 只作为“为什么值得关注”的线索，`links.original` 指向原文。时间按北京时间展示，区分原文发布时间与 AIHOT 收录时间。需要事件脉络时，仅在热点 API 实际返回 `links.story` 后再取对应 `/api/v1/stories/{publicId}`，使用其中明确的时间线和 `digest`，不猜事件 ID。
+
+AIHOT items 不提供单篇正文。深度卡要进一步阅读可访问的原文及必要的独立补充来源，并将新增事实记入源数据清单；拿不到原文时只能依据摘要和推荐理由写速览，不能靠常识扩写。
+
 ```bash
-UA="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 aihot-skill/0.2.0"
-SINCE=$(date -u -d '36 hours ago' +%Y-%m-%dT%H:%M:%SZ)
-curl -sH "User-Agent: $UA" "https://aihot.virxact.com/api/public/items?mode=selected&since=$SINCE&take=100" -o "/c/works/.tmp-aihot-YYYY-MM-DD.json"
+UA="aihot-skill/1.7.1 (+https://aihot.news/aihot-skill/)"
+curl --compressed -fsSL -H "User-Agent: $UA" "https://aihot.news/api/v1/items?mode=selected&window=24h&limit=50" -o "/c/works/.tmp-aihot-YYYY-MM-DD.json"
 ```
 
 用 node 解析 JSON（python3 不可用）：
 ```bash
 node -e "
 const d = JSON.parse(require('fs').readFileSync('C:/works/.tmp-aihot-2026-06-30.json','utf8'));
-const items = d.items || [];
+const items = d.items || []; // summary / reason / links.original / source.name
 console.log('total:', items.length);
 // group by category
 "
@@ -82,9 +85,11 @@ console.log('total:', items.length);
 - 如果 WebFetch 只返回标题没有正文 → 标记为"仅标题，详情待确认"
 - Kotaku 通常返回 20-40 条当日文章，优先提取评论数多/置顶的
 
-**目标：** 行业动态 6-8 + 新游评测 5-7 + 电竞 4-5 + 硬件/社区 3-4，最多 20 条（允许更少）。
+**目标：** 覆盖行业动态、新游、电竞、硬件与评测；最多 20 条，优先保证重要条目有足够原文可深读。
 
 ### 1c. 足球数据（WebFetch）
+
+**范围先筛选再写作：只收男足欧洲五大联赛（英超、西甲、德甲、意甲、法甲）及男足洲际、世界级正式大赛**，例如欧冠、欧联、欧协联、欧洲杯、美洲杯、非洲杯、亚洲杯、世界杯和世俱杯。五大联赛俱乐部的男足球员、教练和转会动态可纳入。女足及其赛事（包括 WSL、NWSL、女足欧冠、女足世界杯）、青年队、其他国内联赛和无关赛事一律不入选。来源首页混有这些内容时，逐条核对赛事、球队和性别；不明确就舍弃。
 
 | 序号 | 抓取源 | URL | 提取要求 |
 |------|--------|-----|---------|
@@ -92,7 +97,7 @@ console.log('total:', items.length);
 | F2 | SI 足球转会 | `https://www.si.com/soccer/transfers` | 8 条转会新闻，标注 ✅官宣 / 🔹传闻 |
 | F3 | ESPN 足球 | `https://www.espn.com/soccer/` | 8 条联赛+球员新闻 |
 
-约 8 赛事战报 + 8 转会 + 5 联赛 + 5 球员 + 4 分析 ≈ 30 条。
+数量服从范围和证据质量，最多 20 条；不为填满板块纳入范围外新闻。
 
 ### 1d. 芯片数据（WebFetch）
 
@@ -214,9 +219,9 @@ PYEOF
 
 ### 每份报告的源数据清单（Phase 2 写作前必做）
 
-在生成任何报告之前，必须将该领域的源数据整理为纯文本列表（标题+URL，一行一条），作为写作的唯一依据。这个列表就是"数据边界"——卡片内容不得超出此边界。
+在生成任何报告之前，必须将该领域的源数据整理为可追溯清单：每条至少有标题、原文 URL、来源、发布时间，以及从原文或结构化数据实际取得的事实要点。重要条目再记录第二来源、事件背景和证据位置；AI 条目可附 API 的 `summary`、非空 `reason` 与经实际取得的事件 `digest`。这份清单是写作的事实边界，不能只保留标题和 URL 后凭记忆补全细节。
 
-**示例（足球）：**
+**候选标题示例（入选深度卡还须附原文事实要点）：**
 ```
 SOURCE LIST for footballhot-2026-07-10:
 - [ESPN] France 2-0 Morocco QF - Mbappé scores (https://www.espn.com/soccer/...)
@@ -231,7 +236,7 @@ SOURCE LIST for footballhot-2026-07-10:
 - [ESPN] Tchouameni says "happy at Real Madrid" (https://www.espn.com/...)
 ```
 
-**每张卡片只能基于列表中明确存在的一行或多行。如果某张卡片的核心事实不在列表中 → 整张卡片删除。**
+**每张卡片只能基于清单中明确记录的一行或多行。如果核心事实不在清单中 → 整张卡片删除。**
 
 ---
 
@@ -264,9 +269,15 @@ SOURCE LIST for footballhot-2026-07-10:
 
 实施方式：在写卡片之前，在心里问自己"源数据列表的哪一行支持我写这句话？"如果答案是"没有" → 不写那句话。
 
-### 规则二：三倍放大上限（3x Amplification Cap）
+### 规则二：深度解读先增加证据，再增加文字
 
-**WebFetch 来源的卡片，解读文字量不超过对应源数据文字量的 3 倍。**
+每份报告在有足够条目时优先选 5—8 条最重要的新闻深读原文；一张深度卡尽量用 3 个短段落回答：**发生了什么与关键背景、对行业/赛事/市场的具体影响、仍有哪些未知或相反证据**。有充分原文证据时，正文以约 250—450 字为目标；重要事件可更长，但每个新事实、数字和因果链都要能回指源数据清单。与前两期同一事件有新进展时，说明新增了什么，避免把旧背景写成今日新闻。减少条目数可以换取更扎实的阅读和分析。
+
+原文仅有标题或简短摘要时，标作“速览”或“详情待确认”，写清已知事实与未知部分，不称为深度解读，不为达到字数目标补全。分析推断与事实分开表述并标注 `💭 分析`；不能把 AIHOT 的 `reason`、媒体观点或公司说法改写成已证实结果。
+
+### 规则三：三倍放大上限（3x Amplification Cap）
+
+**WebFetch 来源的卡片，解读文字量不超过已读取并记录的对应源数据文字量的 3 倍。** 要写更深，先读取更多原文或独立来源，而不是放宽证据约束。
 
 | 源数据量 | 最大解读量 |
 |---------|-----------|
@@ -276,15 +287,14 @@ SOURCE LIST for footballhot-2026-07-10:
 
 **例外：** yfinance/FRED/aihot API 数据可视需要充分展开分析（结构化数据可靠）。
 
-### 规则三：足球/游戏降级为"摘要模式"
+### 规则四：足球/游戏按证据深度写作
 
-由于这两个领域 100% 依赖 WebFetch（无结构化 API），编造率 >85%：
-- 默认使用简短"新闻摘要"格式（每条 80-200 字）
-- **严禁**详细的比赛战报（分钟、助攻、控球率、xG）、数据分析和战术解读
+由于这两个领域高度依赖网页内容，先打开每条入选新闻的原文。原文有足够材料时，可写有背景和影响的解读；只有标题/摘要时保持简短速览。无来源支持时：
+- **严禁**补写比赛分钟、助攻、控球率、xG、战术细节、发售平台或价格
 - 标签统一使用 🔹 WebFetch源（除非有官方公告确认）
 - Footer 区域增加提示：`⚠️ 本报告基于 AI 网页摘要，赛事细节未经独立验证，仅供话题参考`
 
-### 规则四：具体数字必须有源可查
+### 规则五：具体数字必须有源可查
 
 以下类型的数字**必须**在源数据中找到对应，否则删除：
 - 比分、进球时间
@@ -294,7 +304,7 @@ SOURCE LIST for footballhot-2026-07-10:
 - 收视率、用户数
 - 分析师目标价、评级
 
-### 规则五：不编造源数据中不存在的实体和事件
+### 规则六：不编造源数据中不存在的实体和事件
 
 - 不编造"分析师说/专家认为/官员表示"类型的引语和观点
 - 不编造"历史对比"（如"这是自 1998 年以来首次..."）
@@ -314,7 +324,7 @@ SOURCE LIST for footballhot-2026-07-10:
 | 足球 | `footballhot-report-YYYY-MM-DD.html` | ≤ 20（WebFetch 高风险，宁少勿假） |
 | 芯片 | `chiphot-report-YYYY-MM-DD.html` | ≤ 20（WebFetch 中高风险） |
 | 股权投资 | `equityhot-report-YYYY-MM-DD.html` | ≤ 20（WebFetch 中高风险） |
-| 全球宏观 | `macro-report-YYYY-MM-DD.html` | ≤ 15 条 + 34 指标（yfinance/FRED 可靠） |
+| 全球宏观 | `macro-report-YYYY-MM-DD.html` | ≤ 15 条 + 实际取得的指标 |
 
 日期取当前北京时间（`date +%Y-%m-%d`）。
 
@@ -380,13 +390,13 @@ body {
 <div class="card-top">             <!-- 点击区 -->
 <span class="card-number">1</span>        <!-- 全局编号 -->
 <div class="card-content">               <!-- 标题+元数据 -->
-<h3>条目标题文案<span class="tag-verified">✅ 已验证</span></h3>  <!-- Tier 1/2 必须带标签 -->
+<h3>条目标题文案<span class="tag-verified">✅ 结构化源</span></h3>  <!-- Tier 1/2 必须带标签 -->
 <div class="card-meta">来源名 · 6月29日 21:22</div>
 </div>
 <div class="card-arrow">▼</div>          <!-- ▸ 展开箭头，必须存在 -->
 </div>                                    <!-- .card-top 结束 -->
 <div class="card-detail">                <!-- 展开区，direct child of .card -->
-<p>深度解读：Tier 1(300-500字) / Tier 2(100-200字) / 仅标题(80-150字)</p>
+<p>有充分原文证据时：事实与背景、具体影响、未知之处；证据不足时明确标为速览。</p>
 <a class="source-link" href="原URL" target="_blank">🔗 查看原文</a>
 </div>
 </div>
@@ -396,7 +406,7 @@ body {
 1. `<div class="card-arrow">▼</div>` 必须在 `.card-top` 内的末尾（`.card-content` 之后），**不能省略**
 2. `</div>` 关闭 `.card-top` 后才打开 `.card-detail` — card-detail **不能嵌套在 card-top 内**
 3. 首条卡片用 `class="card active"`，后续用 `class="card"`
-4. **每条标题必须含 Tier 标签：** `<span class="tag-verified">✅ 已验证</span>` 或 `<span class="tag-unconfirmed">🔹 传闻</span>`（Tier 3 纯分析除外）
+4. **每条标题必须含 Tier 标签：** `<span class="tag-verified">✅ 结构化源</span>` 或 `<span class="tag-unconfirmed">🔹 WebFetch源</span>`；分析推断另标 `💭 分析`
 
 #### CSS 关键规则
 
@@ -570,17 +580,21 @@ document.addEventListener('DOMContentLoaded', function() {
 | s-geo | Geopolitics & Trade 地缘贸易 | #d97706 |
 | s-commodity | Commodities & FX 商品外汇 | #7c3aed |
 
-**Market Data metric-grid 必含 34 个指标，7 组，每指标必须有 metric-explain 中文解释：**
+**Market Data 按下列候选指标动态生成，只展示本次实际取得的数值：**
+
+- 只渲染有可核对数值和观测日期的指标卡；每张显示来源、观测日期和 `metric-explain` 中文解释。月度或季度指标可显示其最新已公布观测值，但必须标明该观测期，不得写成今日实时值。
+- 某一指标组全部未取得数值时，省略整组及其标题；所有组都无有效数据时，省略整个 Market Data 区及目录入口。**不显示“数据暂缺”指标卡或空白板块。** 新闻板块仍可按来源正常发布。
+- 封面、目录和 hub 页的“指标”数量以实际展示的卡片数为准；没有展示指标时不附加指标数量。
 
 ```html
 <div class="metric-grid">
 <div class="metric-group-label">美股ETF · yfinance 实时 <small>标普/纳斯达克/道琼斯/罗素</small></div>
 <div class="metric-card"><div class="metric-label">SPY</div><div class="metric-value">$741.00</div><div class="metric-change pos">+1.65% d</div><div class="metric-explain">标普500 ETF，美股大盘风向标</div></div>
-<!-- ... 34 cards total ... -->
+<!-- 只追加本次取得有效数值的卡片 -->
 </div>
 ```
 
-**指标分组:**
+**候选指标分组（有数据才显示）:**
 1. 美股ETF (yfinance × 4): SPY/QQQ/DIA/IWM — 含 d% 涨跌
 2. 美联储利率 (FRED × 6): DFF/DGS10/DGS2/T10Y2Y/T10YIE/BAMLH0A0HYM2
 3. 美国实体经济 (FRED × 7): UNRATE/CPIAUCSL/M2SL/GDP/INDPRO/RSAFS/HOUST
@@ -608,7 +622,7 @@ top.addEventListener('click', function(e) {
 
 ### 逐卡自审清单
 
-对每张卡片问以下 5 个问题（必须全部通过）：
+对每张卡片问以下 6 个问题（必须全部通过）：
 
 1. ☐ **核心事实存在？** 这条新闻的核心事实在源数据列表中存在吗？
    - ❌ 不存在 → **整张卡片删除**（不是修改，是删除）
@@ -630,6 +644,10 @@ top.addEventListener('click', function(e) {
    - WebFetch 源但标了 ✅ → **改为 🔹 WebFetch源**
    - 标签正确 → ✅ 通过
 
+6. ☐ **解读是否有足够证据？** 标为深度解读的卡片是否读过原文，涵盖有来源支持的事实/背景、影响与未知之处？
+   - 只有标题或短摘要 → 改为速览；不能用空泛推论填满段落
+   - 新增背景或第二来源 → 在源数据清单记录 URL 和支持的事实
+
 ### 领域专项检查
 
 **足球/游戏报告（WebFetch 100%）：额外检查：**
@@ -637,6 +655,7 @@ top.addEventListener('click', function(e) {
 - ☐ 没有任何 xG、控球率、射门数等高级统计
 - ☐ 没有任何"这是自 XXXX 年以来首次..."的历史断言
 - ☐ Footer 包含 WebFetch 警告提示
+- ☐ 足球每条均属于男足五大联赛或男足洲际、世界级正式大赛；没有女足、青年队或范围外赛事
 
 **芯片/股权报告（WebFetch 主导，yfinance 辅助）：额外检查：**
 - ☐ 股票涨跌幅来自 yfinance（不来自 WebFetch 摘要中的数字）
@@ -644,7 +663,8 @@ top.addEventListener('click', function(e) {
 - ☐ 没有编造"Morgan Stanley/Citi/高盛 上调目标价"类分析师报告
 
 **宏观报告（yfinance/FRED + WebFetch 混合）：额外检查：**
-- ☐ 所有 34 个市场指标数值来自 yfinance/FRED JSON 文件
+- ☐ 每个已展示指标的数值和观测日期均来自本次取得的 yfinance/FRED 数据；不可用指标及空组未渲染
+- ☐ 无有效指标时，Market Data 区、目录入口和 hub 指标计数均不存在
 - ☐ 新闻解读中的官员引语在 WebFetch 源数据中存在
 - ☐ 没有编造的经济预测数字
 
@@ -660,7 +680,7 @@ top.addEventListener('click', function(e) {
 
 ### 3a. Git 操作全部用 `git -C /c/works/gigode.github.io`
 
-因为工作目录可能不在 repo 中，必须使用 `-C` 参数。
+因为工作目录可能不在 repo 中，必须使用 `-C` 参数；路径取当前实际网站仓库，不固定使用下面的 Windows 示例。
 
 ```bash
 git -C /c/works/gigode.github.io pull origin main
@@ -716,12 +736,12 @@ files.forEach(f => {
         <time>周二</time>
       </div>
       <div class="report-links">
-        <a class="report-pill rp-ai"    href="/reports/2026-06-30/ai.html">🤖 AI 行业报告 · 22 条</a>
-        <a class="report-pill rp-game"  href="/reports/2026-06-30/game.html">🎮 游戏行业报告 · 30 条</a>
-        <a class="report-pill rp-foot"  href="/reports/2026-06-30/football.html">⚽ 足球行业报告 · 29 条</a>
-        <a class="report-pill rp-chip"  href="/reports/2026-06-30/chip.html">🔬 芯片行业报告 · 26 条</a>
-        <a class="report-pill rp-equity" href="/reports/2026-06-30/equity.html">💰 股权投资报告 · 26 条</a>
-        <a class="report-pill rp-macro" href="/reports/2026-06-30/macro.html">🌍 全球宏观日报 · 22 条</a>
+        <a class="report-pill rp-ai"    href="/reports/2026-06-30/ai.html">🤖 AI 行业报告 · N 条</a>
+        <a class="report-pill rp-game"  href="/reports/2026-06-30/game.html">🎮 游戏行业报告 · N 条</a>
+        <a class="report-pill rp-foot"  href="/reports/2026-06-30/football.html">⚽ 足球行业报告 · N 条</a>
+        <a class="report-pill rp-chip"  href="/reports/2026-06-30/chip.html">🔬 芯片行业报告 · N 条</a>
+        <a class="report-pill rp-equity" href="/reports/2026-06-30/equity.html">💰 股权投资报告 · N 条</a>
+        <a class="report-pill rp-macro" href="/reports/2026-06-30/macro.html">🌍 全球宏观日报 · N 条</a>
       </div>
     </div>
 ```
@@ -790,21 +810,20 @@ git -C /c/works/gigode.github.io push origin main
 - **API 返回空 / WebFetch 无结果：** 对应报告封面标注"今日暂无数据"，仍生成占位报告
 - **Git push 冲突：** `git -C /c/works/gigode.github.io pull --rebase` 再 push
 - **日期跨越（0:00-8:00）：** 数据偏少，报告注明时间窗
-- **yfinance 下载失败：** 回退到 WebFetch 抓 investing.com indices 页面
-- **FRED API 返回空：** 单条卡片标注"数据暂缺"，不阻塞整体生成
+- **yfinance 下载失败：** 可尝试其他可核实来源；仍取不到的指标、空组不显示
+- **FRED API 返回空：** 省略对应指标或空组；宏观新闻报告不因此中断
 
 ## 铁律（不可违反）
 
 ### 环境铁律
-1. **全文 0 个 python3 命令** — 用 `/c/Users/zm_ji/scoop/apps/python/current/python.exe`
-2. **全文 0 个 WebSearch** — 全部用 WebFetch
-3. **全文 0 个 python** — 只能用 scoop Python 完整路径
-4. **git 命令全部用 `-C`** — `git -C /c/works/gigode.github.io`
-5. **node 解析 JSON** — python3 不可用时用 node
+1. **按当前系统选解释器和路径** — 原 Windows 工作站用 Scoop Python 完整路径；Linux/macOS 用已安装的 Python，不执行 Windows 路径。
+2. **新闻必须实际检索** — 使用可取得原文与 URL 的网页读取工具；不从搜索摘要凭空补全。
+3. **git 命令全部用 `-C`** — 指向当前实际网站仓库。
+4. **JSON 解析** — Node 或可用 Python 均可，保留原始源数据供自审。
 
 ### 内容铁律
 6. **6 领域全覆盖** — 不能只更新部分
-7. **字数弹性化，宁短勿假** — WebFetch 源默认简短（80-200 字），绝不编造细节凑字
+7. **先深读，后深写** — 优先深入阅读原文，为重要条目写有事实、背景、影响和未知之处的解读；仅标题或短摘要写速览，绝不编造细节凑字
 8. **每条标题必须含数据源标签** — `✅ 结构化源`（API）或 `🔹 WebFetch源`（WebFetch）或 `💭 分析`（Tier 3）。
    - **标签由数据来源决定，不由内容"看起来可不可信"决定。**
    - **所有 WebFetch 来源的内容默认使用 🔹 标签，无论内容看起来多可信。**
@@ -813,20 +832,22 @@ git -C /c/works/gigode.github.io push origin main
 11. **三倍放大上限（2026-07-10 新增）** — WebFetch 来源卡片，解读文字 ≤ 源数据的 3 倍。
 12. **具体数字必须有源可查（2026-07-10 新增）** — 比分、金额、百分比、人数等具体数字必须在源数据或 yfinance/FRED JSON 中能找到。找不到 → 删除该数字。
 13. **不编造引语、历史断言、赛事细节（2026-07-10 新增）** — 禁止编造"专家说/分析师认为"型引语、"自 XXXX 年以来首次"型历史断言、和比赛战报级别细节。
+14. **足球范围** — 只收男足欧洲五大联赛及男足洲际、世界级正式大赛；逐条排除女足、青年队和范围外赛事。
+15. **宏观缺失数据不展示** — 无有效数值的指标卡及空组不渲染；全部缺失则省略整个 Market Data 区，数量按实际展示计算。
 
 ### Phase 2.5 自审铁律（2026-07-10 新增）
-14. **Phase 2.5 不可跳过** — 每份报告写完后必须逐卡执行 5 项自审清单
-15. **未通过自审 → 修正后再部署** — 不允许带着已知问题 push
-16. **足球/游戏报告 Footer 必须含 WebFetch 警告** — `⚠️ 本报告基于 AI 网页摘要，赛事细节未经独立验证，仅供话题参考`
+16. **Phase 2.5 不可跳过** — 每份报告写完后必须逐卡执行 6 项自审清单
+17. **未通过自审 → 修正后再部署** — 不允许带着已知问题 push
+18. **足球/游戏报告 Footer 必须含 WebFetch 警告** — `⚠️ 本报告基于 AI 网页摘要，赛事细节未经独立验证，仅供话题参考`
 
 ### 结构铁律
-17. **card-arrow 必须存在** — 每张卡片缺一不可
-18. **card-detail 必须是 card 直接子元素** — 不嵌套在 card-top 内
-19. **不删除历史条目** — index.html 只追加不删除
-20. **新日期插入 TOP** — index.html 新日期块必须插入最顶部
+19. **card-arrow 必须存在** — 每张卡片缺一不可
+20. **card-detail 必须是 card 直接子元素** — 不嵌套在 card-top 内
+21. **不删除历史条目** — index.html 只追加不删除
+22. **新日期插入 TOP** — index.html 新日期块必须插入最顶部
 
 ### 去重铁律
-21. **去重前两日报道** — 生成报告前，必须对比前两日报告，剔除标题/事件已出现在前两日中的条目，只保留新资讯。
+23. **去重前两日报道** — 生成报告前，必须对比前两日报告，剔除标题/事件已出现在前两日中的条目，只保留新资讯。
 
 ## 相关资源
 
